@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "self-attention"
+version = "0.1.0"
+description = ""
+authors = ["wilfred11 <wilfredvancasteren@hotmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.12.10"
+torch = "^2.8.0"
+numpy = "^2.3.3"
+matplotlib = "^3.10.6"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
