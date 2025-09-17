@@ -77,10 +77,25 @@ As stated, the goal of self-attention is to move the embedding for each token to
 The context of a token is given by the surrounding tokens in the sentence. Therefore, we can use the embeddings of all the tokens in the input sequence to update the embedding for any word, such as bank. Ideally, words that provide significant context (such as river) will heavily influence the embedding, while words that provide less context (such as a) will have minimal effect.
 
 The degree of context one word contributes to another is measured by a similarity score. Tokens with similar learned embeddings are likely to provide more context than those with dissimilar embeddings. The similarity scores are calculated by taking the dot product of the current embedding for one token (its learned embedding plus positional information) with the current embeddings of every other token in the sequence. For clarity, the current embeddings have been termed self-attention inputs in this article and are denoted x.
+### Measuring similarity
 
 There are several options for measuring the similarity between two vectors, which can be broadly categorised into: distance-based and angle-based metrics. Distance-based metrics characterise the similarity of vectors using the straight-line distance between them. This calculation is relatively simple and can be thought of as applying Pythagoras’s theorem in d_model-dimensional space. While intuitive, this approach is computationally expensive.
 
 ### Dot-product
+
+$$a.b = \sum_{i=1}^{n}a_i,b_i $$
+
+The dot can also be defined as 
+
+$$ a.b = |a||b|cos\alpha$$
+
+The product of the magnitude of a projected on b and the magnitude of b. 
+
+![dotproduct.png](plots/dotproduct.png)
+
+The dot product is a scalar value, which means it is a single number rather than a vector. The dot product is positive if the angle between the vectors is less than 90 degrees, negative if the angle between the vectors is greater than 90 degrees, and zero if the vectors are orthogonal.
+
+The dot product can be affected by the length and direction of the vectors. When two vectors have the same length but different directions, the dot product will be larger if the two vectors are pointing in the same direction and smaller if they are pointing in opposite directions. imagine two vectors represented by arrows, vector a and vector b. If vectors a and b are pointing in the same direction as each other, the dot product of a and b will be larger than if a and b were pointing in opposite directions.
 
 The diagram below shows the dot product between the self-attention input vector for bank, x_bank, and the matrix of vector representations for every token in the input sequence, X^T. We can also write x_bank as x_11 to reflect its position in the input sequence. The matrix X stores the self-attention inputs for every token in the input sequence as rows. The number of columns in this matrix is given by L_max, the maximum sequence length of the model. In this example, we will assume that the maximum sequence length is equal to the number of words in the input prompt, removing the need for any padding tokens (see Part 4 in this series for more about padding). To compute the dot product directly, we can transpose X and calculate the vector of similarity scores, S_bank using S_bank = x_bank ⋅ X^T. The individual elements of S_bank represent the similarity scores between bank and each token in the input sequence.
 
@@ -102,4 +117,30 @@ The output of the previous step is the vector S_bank, which contains the similar
 
 Finally, the transformer embedding for bank is obtained by taking the weighted sum of write, a, prompt, …, bank. Of course, bank will have the highest similarity score with itself (and therefore the largest attention weight), so the output embedding after this process will remain similar to before. This behaviour is ideal since the initial embedding already occupies a region of vector space that encodes some meaning for bank. The goal is to nudge the embedding towards the words that provide more context. The weights for words that provide little context, such as a and man, are very small. Hence, their influence on the output embedding will be minimal. Words that provide significant context, such as river and fishing, will have higher weights, and therefore pull the output embedding closer to their regions of vector space. The end result is a new embedding, y_bank, that reflects the context of the entire input sequence.
 
- 
+ ## Self-attention model
+
+The self-attention model in code can be viewed below. When coded in this way 
+
+```
+import torch
+from torch import nn
+class SelfAttention(nn.Module):
+    def __init__(self, d_in, d_out_kq, d_out_v):
+        super().__init__()
+        self.d_in=d_in
+        self.d_out_kq = d_out_kq
+        self.W_query = nn.Parameter(torch.rand(d_in, d_out_kq))
+        self.W_key = nn.Parameter(torch.rand(d_in, d_out_kq))
+        self.W_value = nn.Parameter(torch.rand(d_in, d_out_v))
+    def forward(self, x):
+        keys = x.matmul(self.W_key)
+        queries = x.matmul(self.W_query)
+        values = x.matmul(self.W_value)
+        # unnormalized attention weights
+        attn_scores = queries.matmul(keys.T)
+        attn_weights = torch.softmax(
+            attn_scores / self.d_out_kq ** 0.5, dim=-1
+        )
+        context_vex = attn_weights.matmul(values)
+        return context_vex
+```
