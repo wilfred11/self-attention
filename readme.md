@@ -28,7 +28,7 @@ Below is a complete overview of the embedding process, first words are converted
 
 ![embedding.png](plots/embedding.png)
 
-### Tokenizing and embedding
+## Tokenizing and embedding
 
 A very simplistic way to tokenize the words in the sentence would be something like below.
 
@@ -69,6 +69,8 @@ tensor([[ 0.3374, -0.1778, -0.3035, -0.5880,  0.3486,  0.6603, -0.2196, -0.3792,
         [ 0.8768,  1.6221, -1.4779,  1.1331, -1.2203,  1.3139,  1.0533,  0.1388,
           2.2473, -0.8036, -0.2808,  0.7697, -0.6596, -0.7979,  0.1838,  0.2293]])
 ```
+
+## Mechanism
 
 As stated, the goal of self-attention is to move the embedding for each token to a region of vector space that better represents the context of its use in the input sequence. What we didn’t discuss is how this is done. Here we will show a step-by-step example of how the self-attention mechanism modifies the embedding for bank, by adding context from the surrounding tokens.
 
