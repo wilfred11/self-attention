@@ -153,7 +153,9 @@ Finally, the transformer embedding for bank is obtained by taking the weighted s
 
  ## Self-attention model
 
-The self-attention model in code can be viewed below. When coded in this way 
+The self-attention model in code can be viewed below. Most of the time, a complete transformer is made up of several components. In this case, the self-attention model is a component which  can be fed with the matrix representing the embedded sentence.
+
+I will not go through the entire training of this component, as several other components are needed to create a complete model. It is important to keep in mind that the weight matrices for Q, K and V are learned. This implies that when a transformer is trained using a real  
 
 ```
 import torch
