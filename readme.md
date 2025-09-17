@@ -14,11 +14,61 @@ The plots below show a simplified set of learned embedding vectors in two dimens
 
 More accurately, the goal of self-attention here is to update the vector for every word in the input, so that all embeddings better represent the context in which they were used. Self-attention is applied across all the words. In this case the effect neighbouring words have on bank is being visualised. But in reality every token is being influenced by its neighbouring words. The self-attention block in a transformer is responsible for contextualising the embeddings of every token in the input. 
 
+Imagine for instance the sentence 
+
+```'Write a poem about a man fishing on a river bank'``` 
+
+The embedding (some vector of multiple elements) for the word bank will be influenced by its context, so that it's meaning gets closer to its direct context.
+
 ![visual_attention.png](plots/visual_attention.png)
 
 ## How does it work
 
+Below is a complete overview of the embedding process, first words are converted to token-ids, than token-ids are converted to embeddings (one multivariate vector per token-id), than positional information is added to the embedding (no further information for now) and finally context is added through self-attention.
+
 ![embedding.png](plots/embedding.png)
+
+### Tokenizing and embedding
+
+A very simplistic way to tokenize the words in the sentence would be something like below.
+
+```
+sentence="Write a poem about a man fishing on a river bank"
+input_ids = {s: i for i, s in enumerate(sorted(sentence.split()))}
+input_tokens = torch.tensor([input_ids[s] for s in sentence.split()])
+```
+
+The sentence is being split into separate words, which are than sorted, enumerated and put in a dictionary, with its value (the number i retrieved when enumerating).
+A dictionary can only contain unique keys so repeating words are being omitted.
+The dictionary looks like below:
+
+```
+{'Write': 0, 'a': 3, 'about': 4, 'bank': 5, 'fishing': 6, 'man': 7, 'on': 8, 'poem': 9, 'river': 10}
+```
+
+And the tokenized sentence looks like below:
+
+```
+tensor([ 0,  3,  9,  4,  3,  7,  6,  8,  3, 10,  5])
+```
+At this moment every word is represented by an id, which is just an identifier. 
+
+A way to create an embedding for this sentence would be to use an embedding layer as present in torch. In this case the size of the dictionary (the number of unique words) is used as the number of embeddings and an arbitrary number is chosen for the embedding dimension.
+
+```
+import torch
+embed = torch.nn.Embedding(11, 16)
+embedded_sentence = embed(input_tokens).detach()
+```
+
+The first two words of the embedded sentence look like below. So for every word 16 floating point values are generated.
+
+```
+tensor([[ 0.3374, -0.1778, -0.3035, -0.5880,  0.3486,  0.6603, -0.2196, -0.3792,
+          0.7671, -1.1925,  0.6984, -1.4097,  0.1794,  1.8951,  0.4954,  0.2692],
+        [ 0.8768,  1.6221, -1.4779,  1.1331, -1.2203,  1.3139,  1.0533,  0.1388,
+          2.2473, -0.8036, -0.2808,  0.7697, -0.6596, -0.7979,  0.1838,  0.2293]])
+```
 
 As stated, the goal of self-attention is to move the embedding for each token to a region of vector space that better represents the context of its use in the input sequence. What we didn’t discuss is how this is done. Here we will show a step-by-step example of how the self-attention mechanism modifies the embedding for bank, by adding context from the surrounding tokens.
 
