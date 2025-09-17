@@ -77,6 +77,40 @@ As stated, the goal of self-attention is to move the embedding for each token to
 The context of a token is given by the surrounding tokens in the sentence. Therefore, we can use the embeddings of all the tokens in the input sequence to update the embedding for any word, such as bank. Ideally, words that provide significant context (such as river) will heavily influence the embedding, while words that provide less context (such as a) will have minimal effect.
 
 The degree of context one word contributes to another is measured by a similarity score. Tokens with similar learned embeddings are likely to provide more context than those with dissimilar embeddings. The similarity scores are calculated by taking the dot product of the current embedding for one token (its learned embedding plus positional information) with the current embeddings of every other token in the sequence. For clarity, the current embeddings have been termed self-attention inputs in this article and are denoted x.
+
+### QKV 
+
+This self-attention mechanism allows the model to focus on different parts of the input sequence and weigh their importance when making predictions. To fully understand how this works, we need to dive into the matrices that drive it: Q (Query), K (Key), and V (Value). 
+
+It's not the math that is difficult, but what is difficult is understanding the "why" as much as the "how." Why do these matrices work? What do each of the matrices do? Why are there even three matrices? What is the intuition for all of this?
+
+#### Some analogy
+
+Imagine you’re at a library, searching for books on a particular topic. You have a query in mind (what you're looking for) and the librarian has organized the library catalog by key attributes, such as genre, author, or publication date. Based on how well the attributes match your query, the librarian assigns a score to each book. Once the books are scored, the librarian returns the value—the actual content or summary of the top-scoring books that best match your query.
+
+QKV is used to mimic a “search” procedure, in order to find the pairwise similarity measures between tokens. Further, these similarity measures act as weights, to get a weighted average of tokens’ meanings, to make them contextualized.
+
+The Query matrix acts as the part of a token’s meaning that is being searched, for similarity. Key acts as the part of all other tokens’ meanings that Query is compared against. This comparison is done by the dot-product of their vectors which results in the pairwise similarity measures, which is then turned into pairwise weights by normalizing (i.e. Softmax). Value is the part of a token’s meaning that is combined in the end using the found weights.
+
+#### Query
+
+Query (Q): What am I looking for?
+The query represents the word we’re focusing on and asks the rest of the sentence, "How relevant are you to me?" Each word generates a different query matrix, and the higher the match with the keys, the more attention it gives to other words.
+
+#### Key
+
+The key represents the characteristics of each word. Think of the key as each word shouting out, "Here’s what I’m about!" Other words in the sentence will compare their query against these keys to see if they should focus on them.
+
+#### Value
+
+The value contains the actual information of each word, like its meaning in the context of the sentence. Once the model has determined which words are important using the query-key matching process, it uses the value to inform the prediction.
+
+For instance, if the query "write" finds that "poem" is important based on the key, it will give more weight to the value of "poem" to help predict what comes next in the sentence.
+
+#### Weights for Q,K,V
+
+The values for Q,K and V is captured in a learned matrix, the horizontal dimension represents the embedding dimension, while the vertical dimension represents every token (word, subword) in the sentence. The V matrix is allowed to have a different horizontal dimension. 
+
 ### Measuring similarity
 
 There are several options for measuring the similarity between two vectors, which can be broadly categorised into: distance-based and angle-based metrics. Distance-based metrics characterise the similarity of vectors using the straight-line distance between them. This calculation is relatively simple and can be thought of as applying Pythagoras’s theorem in d_model-dimensional space. While intuitive, this approach is computationally expensive.
@@ -85,7 +119,7 @@ There are several options for measuring the similarity between two vectors, whic
 
 $$a.b = \sum_{i=1}^{n}a_i,b_i $$
 
-The dot can also be defined as 
+The dot-product can also be defined as 
 
 $$ a.b = |a||b|cos\alpha$$
 
