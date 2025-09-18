@@ -1,7 +1,8 @@
 # Self-attention
 
 A self-attention mechanism is a core component of transformer neural networks that allows a model to weigh the importance of different elements within an input sequence to understand relationships and context. It works by calculating query, key, and value vectors for each element, then determining attention scores based on the similarity between queries and keys. These scores are used to create a weighted sum of the value vectors, producing a contextual representation that helps the model focus on relevant information.
-
+I mainly used [self-attention explained](https://medium.com/data-science/contextual-transformer-embeddings-using-self-attention-explained-with-diagrams-and-python-code-d7a9f0f4d94e) and 
+[coding self-atttention](https://www.kaggle.com/code/aisuko/coding-the-self-attention-mechanism) to create this readme.
 ## Transformers
 
  The Transformer is a deep neural network architecture that is the foundation for almost all LLMs today. Derivative models are often called Transformer-based models or transformers for short, and so these terms will be used interchangeably here. Like all machine learning models, transformers work with numbers and linear algebra rather than processing human language directly. Because of this, they must convert textual inputs from users into numerical representations through several steps. Perhaps the most important of these steps is applying the self-attention mechanism. The process of representing text with vectors is called embedding (or encoding), hence the numerical representations of the input text are known as transformer embeddings.

@@ -1,6 +1,3 @@
-#https://www.kaggle.com/code/aisuko/coding-the-self-attention-mechanism
-
-#https://medium.com/data-science/contextual-transformer-embeddings-using-self-attention-explained-with-diagrams-and-python-code-d7a9f0f4d94e
 import torch
 
 from embed import do_embed
@@ -10,7 +7,7 @@ from weight import define_weights, attention
 
 torch.manual_seed(123)
 
-do=2
+do=1
 
 if do==1:
     embedded_sentence=do_embed()
@@ -24,7 +21,9 @@ if do==1:
     d_in,d_out_kq,d_out_v=16,24,28
     torch.manual_seed(123)
     model = SelfAttention(d_in, d_out_kq, d_out_v)
-    print(model(embedded_sentence))
+    print(embedded_sentence.shape)
+    context_vectors=model(embedded_sentence)
+    print(context_vectors.shape)
 
 if do==2:
     visualise()
