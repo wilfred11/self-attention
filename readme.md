@@ -125,7 +125,7 @@ The dot-product can also be defined as
 
 $$ a.b = |a||b|cos\alpha$$
 
-The product of the magnitude of a projected on b and the magnitude of b. 
+The product of the magnitude of 'a' projected on 'b' and the magnitude of 'b'. 
 
 ![dotproduct.png](plots/dotproduct.png)
 
