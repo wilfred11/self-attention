@@ -215,3 +215,11 @@ class SelfAttention(nn.Module):
         context_vex = attn_weights.matmul(values)
         return context_vex
 ```
+
+The code to create this component and pass an embedded sentence through it.
+
+```
+d_in,d_out_kq,d_out_v=16,24,28
+model = SelfAttention(d_in, d_out_kq, d_out_v)
+context_vectors=model(embedded_sentence)
+```
