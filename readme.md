@@ -92,8 +92,6 @@ QKV is used to mimic a “search” procedure, in order to find the pairwise sim
 
 The Query matrix acts as the part of a token’s meaning that is being searched, for similarity. Key acts as the part of all other tokens’ meanings that Query is compared against. This comparison is done by the dot-product of their vectors which results in the pairwise similarity measures, which is then turned into pairwise weights by normalizing (i.e. Softmax). Value is the part of a token’s meaning that is combined in the end using the found weights.
 
-As the transformer gets trained, the weights for Q, K, V are adapted. If the model is mostly trained on predicting the next word in a sentence, the weights of these matrices will be adapted accordingly. 
-
 #### Query
 
 Query (Q): What am I looking for?
@@ -151,13 +149,45 @@ The output of the previous step is the vector S_bank, which contains the similar
 
 ### Calculate the transformer embedding
 
-Finally, the transformer embedding for bank is obtained by taking the weighted sum of write, a, prompt, …, bank. Of course, bank will have the highest similarity score with itself (and therefore the largest attention weight), so the output embedding after this process will remain similar to before. This behaviour is ideal since the initial embedding already occupies a region of vector space that encodes some meaning for bank. The goal is to nudge the embedding towards the words that provide more context. The weights for words that provide little context, such as a and man, are very small. Hence, their influence on the output embedding will be minimal. Words that provide significant context, such as river and fishing, will have higher weights, and therefore pull the output embedding closer to their regions of vector space. The end result is a new embedding, y_bank, that reflects the context of the entire input sequence.
+Finally, the transformer embedding for bank is obtained by taking the weighted sum of write, a, poem, …, bank. Of course, bank will have the highest similarity score with itself (and therefore the largest attention weight), so the output embedding after this process will remain similar to before. This behaviour is ideal since the initial embedding already occupies a region of vector space that encodes some meaning for bank. The goal is to nudge the embedding towards the words that provide more context. The weights for words that provide little context, such as a and man, are very small. Hence, their influence on the output embedding will be minimal. Words that provide significant context, such as river and fishing, will have higher weights, and therefore pull the output embedding closer to their regions of vector space. The end result is a new embedding, y_bank, that reflects the context of the entire input sequence.
 
- ## Self-attention model
+ ## Self-attention component
 
-The self-attention model in code can be viewed below. Most of the time, a complete transformer is made up of several components. In this case, the self-attention model is a component which  can be fed with the matrix representing the embedded sentence.
+The self-attention model in code can be viewed below. Most of the time, a complete transformer is made up of several components. In this case, the self-attention model is a component that can be fed with the matrix representing the embedded sentence.
 
-I will not go through the entire training of this component, as several other components are needed to create a complete model. It is important to keep in mind that the weight matrices for Q, K and V are learned. This implies that when a transformer is trained using a real  
+I will not go through the entire training of this component, as several other components are needed to create a complete model. It is important to keep in mind that the weight matrices for Q, K and V are learned.
+
+As the transformer is learning through backpropagation, the weights for Q, K, V are adapted. If the model is mostly trained on predicting the next word in a sentence, the weights of these matrices will get adapted to provide for this kind of behaviour. 
+
+An untrained model has Q,K,V matrices that are randomly filled, so every aspect can be trained, the way keys are searched for ($W_q$), the way keys are represented ($W_k$) and the values represented by the contextualized embeddings.
+
+The self-attention component model looks like below. The init methode gets called when constructing the model. It creates the trainable Q,K,V weight matrices, they are trainable because they are created as nn.Parameter. The d_in and d_out values are input and output dimensions. 
+
+The main parts of the model are :
+
+- initializing the weight parameters
+```
+self.W_query = nn.Parameter(torch.rand(d_in, d_out_kq))
+self.W_key = nn.Parameter(torch.rand(d_in, d_out_kq))
+self.W_value = nn.Parameter(torch.rand(d_in, d_out_v))
+```
+- calculating queries, keys and values: The x value represents the initial embeddings for the complete sentence.
+As every token is a vector, the dot-product can be calculated by doing a matrix multiplication between the embedded sentence and the respective weight matrices for Q,K and V. 
+
+```
+keys = x.matmul(self.W_key)
+queries = x.matmul(self.W_query)
+values = x.matmul(self.W_value)
+```
+
+- The attention scores are being calculated by multiplying the queries and nnd the keys. The better the values in the respective vectors in these 2 matrices match, the higher the resulting products. The normalized attention scores are softmaxed, in this way different attention scores for a token are comparable and sum up to 1.  
+
+```
+attn_scores = queries.matmul(keys.T)
+attn_weights = torch.softmax(attn_scores / self.d_out_kq ** 0.5, dim=-1)
+```
+
+### Code
 
 ```
 import torch
