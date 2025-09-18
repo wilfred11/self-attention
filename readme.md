@@ -180,7 +180,7 @@ queries = x.matmul(self.W_query)
 values = x.matmul(self.W_value)
 ```
 
-- The attention scores are being calculated by multiplying the queries and nnd the keys. The better the values in the respective vectors in these 2 matrices match, the higher the resulting products. The normalized attention scores are softmaxed, in this way different attention scores for a token are comparable and sum up to 1.  
+- The attention scores are being calculated by multiplying the queries and nnd the keys. As for multiplying matrices, column and row dimensions need to match, the 'keys' matrix is transposed.  The better the values in the respective vectors in these 2 matrices match, the higher the resulting products. The normalized attention scores are softmaxed, in this way different attention scores for a token are comparable and sum up to 1.  
 
 ```
 attn_scores = queries.matmul(keys.T)
@@ -188,6 +188,8 @@ attn_weights = torch.softmax(attn_scores / self.d_out_kq ** 0.5, dim=-1)
 ```
 
 ### Code
+
+The code for the complete component looks like this.
 
 ```
 import torch
