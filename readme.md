@@ -181,7 +181,7 @@ queries = x.matmul(self.W_query)
 values = x.matmul(self.W_value)
 ```
 
-- The attention scores are being calculated by multiplying the queries and nnd the keys. As for multiplying matrices, column and row dimensions need to match, the 'keys' matrix is transposed.  The better the values in the respective vectors in these 2 matrices match, the higher the resulting products. The normalized attention scores are softmaxed, in this way different attention scores for a token are comparable and sum up to 1.  
+- The attention scores are being calculated by multiplying the queries and nnd the keys. As for multiplying matrices, column and row dimensions need to match, so the 'keys' matrix is transposed.  The better the values in the respective vectors in these 2 matrices match, the higher the resulting products. The normalized -by dividing the $QK^T$ product by the square root of the embedding dimensions- attention scores are softmaxed, in this way different attention scores for a token are comparable and sum up to 1.  
 
 ```
 attn_scores = queries.matmul(keys.T)
@@ -222,4 +222,58 @@ The code to create this component and pass an embedded sentence through it.
 d_in,d_out_kq,d_out_v=16,24,28
 model = SelfAttention(d_in, d_out_kq, d_out_v)
 context_vectors=model(embedded_sentence)
+```
+
+When printing out the first element of this tensor
+
+```
+tensor([ 3.5495,  1.8923,  0.1912,  5.0111,  3.5241,  3.4608,  4.0753, -0.8526,
+         2.8579,  1.0805,  4.0188,  0.7304,  4.1082,  3.6829,  2.2871,  4.2032,
+         2.7701,  0.9355,  3.0954,  0.3248,  2.0179,  2.9808,  4.2228,  1.3686],
+       grad_fn=<SelectBackward0>)
+```
+
+## Multi-head attention component
+
+When a Transformer uses multiple layers of the self-attention mechanism, it adds more capacities to capture different relationships between tokens.
+
+When so implemented, the Attention module repeats its computations multiple times in parallel. Each of these self-attention layers is called an Attention Head. 
+
+The Attention module splits its Query, Key, and Value parameters N-ways and passes each split independently through a separate Head. All of these similar Attention calculations are then combined together to produce a final Attention score. This is called Multi-head attention and gives the Transformer greater power to encode multiple relationships and nuances for each word.
+
+To show how this is applied in code.
+
+```
+class MultiHeadAttentionWrapper(nn.Module):
+    def __init__(self, d_in, d_out_kq, d_out_v, num_heads):
+        super().__init__()
+        self.heads = nn.ModuleList(
+            [SelfAttention(d_in, d_out_kq, d_out_v) for _ in range(num_heads)]
+        )
+
+    def forward(self, x):
+        return torch.cat([head(x) for head in self.heads], dim=-1)
+```
+A multihead component is created like below.
+
+```
+mha=MultiHeadAttentionWrapper(d_in, d_out_kq, d_out_v, num_heads=4)
+context_vectors=mha(embedded_sentence)
+```
+The context_vectors look like below, and if you use the right seed (torch.manual_seed(123)), the first part is the same as the context_vectors retrieved from the simple self-attention component.
+
+```
+tensor([ 3.5495,  1.8923,  0.1912,  5.0111,  3.5241,  3.4608,  4.0753, -0.8526,
+         2.8579,  1.0805,  4.0188,  0.7304,  4.1082,  3.6829,  2.2871,  4.2032,
+         2.7701,  0.9355,  3.0954,  0.3248,  2.0179,  2.9808,  4.2228,  1.3686,
+         1.9551,  2.3977,  0.8337,  4.3218,  1.0183,  2.5396,  1.2893,  1.4226,
+         2.7055,  2.0367,  3.9609,  2.3453,  3.0337,  1.4412,  3.6250,  2.6724,
+        -0.5701,  1.7091,  2.2386,  2.3670,  2.8967,  3.0036,  1.0338,  0.6741,
+         2.7258,  1.6691,  2.7248,  1.2200,  0.2116,  1.1965,  0.5786,  1.9657,
+         1.2484,  1.6256,  1.8694,  3.7046, -1.4392,  2.7784,  0.9668,  3.0236,
+         3.4546,  1.4897,  1.2695,  1.7539,  1.3164,  0.9480,  2.5104,  2.6346,
+         1.8896,  2.0007,  2.8306,  2.4434,  2.7773,  1.8266,  1.4905,  2.2986,
+         0.6104,  1.2094,  2.4360,  2.5187,  2.8287,  1.3463,  2.2062,  0.7742,
+         2.8211,  1.3711,  1.3270,  4.1067,  4.1821,  4.0949,  0.7810,  2.9737],
+       grad_fn=<SelectBackward0>)
 ```
