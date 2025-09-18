@@ -70,7 +70,7 @@ tensor([[ 0.3374, -0.1778, -0.3035, -0.5880,  0.3486,  0.6603, -0.2196, -0.3792,
           2.2473, -0.8036, -0.2808,  0.7697, -0.6596, -0.7979,  0.1838,  0.2293]])
 ```
 
-## Mechanism
+## Self-attention mechanism
 
 As stated, the goal of self-attention is to move the embedding for each token to a region of vector space that better represents the context of its use in the input sequence. What we didn’t discuss is how this is done. Here we will show a step-by-step example of how the self-attention mechanism modifies the embedding for bank, by adding context from the surrounding tokens.
 
@@ -86,11 +86,13 @@ It's not the math that is difficult, but what is difficult is understanding the 
 
 #### Some analogy
 
-Imagine you’re at a library, searching for books on a particular topic. You have a query in mind (what you're looking for) and the librarian has organized the library catalog by key attributes, such as genre, author, or publication date. Based on how well the attributes match your query, the librarian assigns a score to each book. Once the books are scored, the librarian returns the value—the actual content or summary of the top-scoring books that best match your query.
+Imagine you’re at a library, searching for books on a particular topic. You have a query in mind (what you're looking for) and the librarian has organized the library catalog by key attributes, such as genre, author, or publication date. Based on how well the attributes match your query, the librarian assigns a score to each book. Once the books are scored, the librarian returns the value —the actual content or summary of the top- scoring books that best match your query.
 
 QKV is used to mimic a “search” procedure, in order to find the pairwise similarity measures between tokens. Further, these similarity measures act as weights, to get a weighted average of tokens’ meanings, to make them contextualized.
 
 The Query matrix acts as the part of a token’s meaning that is being searched, for similarity. Key acts as the part of all other tokens’ meanings that Query is compared against. This comparison is done by the dot-product of their vectors which results in the pairwise similarity measures, which is then turned into pairwise weights by normalizing (i.e. Softmax). Value is the part of a token’s meaning that is combined in the end using the found weights.
+
+As the transformer gets trained, the weights for Q, K, V are adapted. If the model is mostly trained on predicting the next word in a sentence, the weights of these matrices will be adapted accordingly. 
 
 #### Query
 
